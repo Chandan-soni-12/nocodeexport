@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Required: Playwright and node modules should not be bundled for the client
+  serverExternalPackages: ['playwright', 'archiver', 'bullmq', 'ioredis'],
 };
 
 export default nextConfig;

@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  clerkId     String   @unique
+  plan        String   @default("FREE") // FREE | PRO | LIFETIME
+  exportsUsed Int      @default(0)
+  stripeCustomerId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exports     Export[]
+}
+
+model Export {
+  id              String    @id @default(cuid())
+  userId          String?
+  sourceUrl       String
+  status          String    @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED
+  progress        Int       @default(0) // 0-100
+  progressMessage String    @default("")
+  zipPath         String?
+  pageCount       Int       @default(0)
+  assetCount      Int       @default(0)
+  sizeBytes       Int       @default(0)
+  errorMessage    String?
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  user            User?     @relation(fields: [userId], references: [id])
+  deployments     Deployment[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Deployment {
+  id        String   @id @default(cuid())
+  exportId  String
+  platform  String   // NETLIFY | VERCEL | GITHUB_PAGES
+  deployUrl String?
+  status    String   @default("DEPLOYING") // DEPLOYING | DEPLOYED | FAILED
+  createdAt DateTime @default(now())
+
+  export    Export   @relation(fields: [exportId], references: [id])
+
+  @@index([exportId])
+}
